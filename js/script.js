@@ -363,6 +363,7 @@
             ea.push(transition.text);
             éa.push(`𝛿(${transition.from.text},${transition.text})=${transition.to.text}`);
         });
+
         listFormal(qa,ea,éa,q0,fa,"left");
         listTable(qa,ea,éa,q0,fa,"left");
     }
@@ -392,6 +393,55 @@
     }
 
     function listTable(q,e,é,q0,f,lor){
-        
+        let table;
+        if(lor=="left"){
+            table = document.querySelector("#left-panel-down .table table tbody");
+            table.innerHTML="";
+            for(let i=-1;i<q.length;i++){
+                table.insertAdjacentHTML("beforeend",`
+                    <tr>
+                    </tr>
+                `);
+                if(i==-1){
+                    table.lastElementChild.insertAdjacentHTML("beforeend",`
+                        <th>
+                        </th>
+                    `);
+                    for(let j of e){
+                        table.lastElementChild.insertAdjacentHTML("beforeend",`
+                            <th>
+                                ${j}
+                            </th>
+                        `);
+                    }
+                }
+                else{
+                    table.lastElementChild.insertAdjacentHTML("beforeend",`
+                            <td>
+                               ${q0==q[i]?"\u2192":f.includes(q[i])?"*":""}${q[i]}
+                            </td>
+                    `);
+                    for(let j of e){
+                        let temp;
+                        for(let k of nfa.T){
+                            if(q[i]==k.from.text && j==k.text){
+                                table.lastElementChild.insertAdjacentHTML("beforeend",`
+                                    <td>
+                                        ${k.to.text}
+                                    </td>
+                                `);
+                                temp=true;
+                            }
+                        }
+                        if(!temp){
+                            table.lastElementChild.insertAdjacentHTML("beforeend",`
+                                <td>
+                                </td>
+                            `);
+                        }
+                    }
+                }
+            }
+        }
     }
 })();   

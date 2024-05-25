@@ -144,9 +144,6 @@ header{
     padding: 0.5em 0;
 }
 
-.panel-down{
-}
-
 #left-panel,#right-panel{
     flex-direction: column;
 }
@@ -154,6 +151,17 @@ header{
 .formal-list{
     display: flex;
     flex-direction: column;
-    padding-top: 0.5em;
     font-size: 1em;
+}
+
+table td,th{
+    border: 1px solid black;
+}
+
+#left-panel-down,#right-panel-down{
+    padding: 0.5em 1em;
+}
+
+.table{
+    margin-top: 1em;
 }
