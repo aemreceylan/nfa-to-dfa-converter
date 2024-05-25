@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script defer src="./js/script.js"></script>
+</head>
+<body>
+    <header>
+        NFA TO DFA CONVERTER
+    </header>
+    <div id="start-screen">
+        <div id="start-screen-text">
+            <p>Work in progress...</p>
+        </div>
+        <div id="start-screen-buttons">
+            <div id="start-screen-buttons-start-button">START</div>
+        </div>
+    </div>
+    <div id="up-panels">
+        <div class="panel" id="up-left">Nondeterministic Finite Automaton - NFA </div>
+        <div class="panel" id="up-right">Deterministic Finite Automaton - DFA</div>
+    </div>
+
+    <div id="canvases">
+        <canvas id="canvas-left" oncontextmenu="return false"></canvas>
+        <div id="canvas-right-panel" class="panel"></div>
+    </div>
+    <div id="panels">
+        <div id="left-panel" class="panel">
+            <div id="left-panel-up" class="panel-up">
+                N = ( Q , E , 𝛿 , q0 , F )
+            </div>
+            <div id="left-panel-down" class="panel-down">
+                <div class="formal-list">
+                    <span>Q = {<span id="lpd-q"></span>}</span>
+                    <span>E = {<span id="lpd-e"></span>}</span>
+                    <span>q0 = <span id="lpd-q0"></span></span>
+                    <span>F = {<span id="lpd-f"></span>}</span>
+                    <span>𝛿 = {<span id="lpd-é"></span>}</span>
+                </div>
+            </div>
+        </div>
+        <div id="right-panel" class="panel">
+            <div id="right-panel-up" class="panel-up">
+                M = ( Q' , E , 𝛿', q0', F' )
+            </div>
+            <div id="right-panel-down" class="panel-down">
+                <div class="formal-list">
+                    <span>Q' = {<span id="lpd-q"></span>}</span>
+                    <span>E = {<span id="lpd-e"></span>}</span>
+                    <span>q0' = <span id="lpd-q0"></span></span>
+                    <span>F' = {<span id="lpd-f"></span>}</span>
+                    <span>𝛿' = {<span id="lpd-é"></span>}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
