@@ -360,8 +360,16 @@
         let ea = [];
         let éa= [];
         automaton.T.forEach(transition=>{
-            ea.push(transition.text);
-            éa.push(`𝛿(${transition.from.text},${transition.text})=${transition.to.text}`);
+            let temp;
+            if(transition.text == 'é')
+                temp = '\u03B5'
+            else
+                temp = transition.text;
+
+            if(!ea.includes(temp)){
+                ea.push(temp);
+            }
+            éa.push(`𝛿(${transition.from.text},${temp})=${transition.to.text}`);
         });
 
         listFormal(qa,ea,éa,q0,fa,"left");
@@ -393,21 +401,28 @@
     }
 
     function listTable(q,e,é,q0,f,lor){
+        let table_rows=[];
         let table;
+        if(e.includes('\u03B5')){
+            e.push(e.splice(e.indexOf('\u03B5'),1));
+        }
         if(lor=="left"){
             table = document.querySelector("#left-panel-down .table table tbody");
             table.innerHTML="";
             for(let i=-1;i<q.length;i++){
+                table_rows.push([]);
                 table.insertAdjacentHTML("beforeend",`
                     <tr>
                     </tr>
                 `);
                 if(i==-1){
+                    table_rows[0].push(undefined);
                     table.lastElementChild.insertAdjacentHTML("beforeend",`
                         <th>
                         </th>
                     `);
                     for(let j of e){
+                        table_rows[0].push(j.toString());
                         table.lastElementChild.insertAdjacentHTML("beforeend",`
                             <th>
                                 ${j}
@@ -416,28 +431,73 @@
                     }
                 }
                 else{
+                    table_rows[table_rows.length-1].push(q[i]);
                     table.lastElementChild.insertAdjacentHTML("beforeend",`
-                            <td>
+                    
+                            <th>
                                ${q0==q[i]?"\u2192":f.includes(q[i])?"*":""}${q[i]}
-                            </td>
+                            </th>
                     `);
                     for(let j of e){
                         let temp;
+                        let temp2=[];
                         for(let k of nfa.T){
+                            if(j=='\u03B5'){
+                                j="é";
+                            }
                             if(q[i]==k.from.text && j==k.text){
-                                table.lastElementChild.insertAdjacentHTML("beforeend",`
-                                    <td>
-                                        ${k.to.text}
-                                    </td>
-                                `);
+                                temp2.push(k.to.text);
                                 temp=true;
                             }
                         }
-                        if(!temp){
+                        if(temp){
+                            table_rows[table_rows.length-1].push(temp2);
+                            table.lastElementChild.insertAdjacentHTML("beforeend",`
+                                <td>
+                                    {${temp2.join(",")}}
+                                </td>
+                            `);
+                        }
+                        else{
+                            table_rows[table_rows.length-1].push(undefined);
                             table.lastElementChild.insertAdjacentHTML("beforeend",`
                                 <td>
                                 </td>
                             `);
+                        }
+                    }
+                }
+            }
+        }
+        convertToDFA(table_rows);
+    }
+
+    function convertToDFA(data){
+        data = clearEpsilon(data);
+    }
+
+    function clearEpsilon(data){
+        let isIncludesEpsilon=false;
+        let step=false;
+        for(let i of data){
+            if(i.includes('\u03B5')){
+                isIncludesEpsilon=true;
+            }
+            if(!step){
+                step=true;
+                continue;
+            }
+            let epsilon = i[i.length-1];
+            if(isIncludesEpsilon && epsilon != undefined){
+                for(let j of epsilon){
+                    for(let k of data.slice(1)){
+                        if(k[0]==j){
+                            let ii=1;
+                            for(let l of k.slice(1)){
+                                if(l!=undefined){
+                                }
+                            }   
+                            break;
                         }
                     }
                 }
