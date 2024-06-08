@@ -63,16 +63,16 @@
         contextmenu.y = event.clientY;
 
         let contextmenu_context;
-        if(nfa.Q.length==0 && selectedNode(contextmenu.x,contextmenu.y) == -1 && nfa.T.length == 0){
+        if(nfa.Q.length==0 && nfa.T.length == 0){
             contextmenu_context=`<li cmno="1">Add State</li>`;
         }
-        else if((nfa.Q.length > 0 || nfa.T.length > 0) && selectedNode(contextmenu.x,contextmenu.y) == -1){
+        else if((nfa.Q.length > 0 || nfa.T.length > 0) && selectedState == -1){
             contextmenu_context=`
                 <li cmno="1">Add State</li>
                 <li cmno="2">Clear</li>
             `;
         }
-        else if(selectedNode(contextmenu.x,contextmenu.y) != -1){
+        else if(selectedState != -1){
             contextmenu_context=`
                 <li cmno="3">Add transition</li>
                 <li cmno="4">Set as start state</li>
@@ -82,7 +82,7 @@
         }
 
         document.body.insertAdjacentHTML("beforeend",`    
-        <div class="contextmenu" style="top:${event.clientY}px;left:${event.clientX}px;user-select:none;cursor:pointer;">
+        <div class="contextmenu" style="top:${contextmenu.y}px;left:${contextmenu.x}px;user-select:none;cursor:pointer;">
             <ul>
                 ${contextmenu_context}
             </ul>
@@ -91,7 +91,7 @@
         document.querySelector(".contextmenu ul").addEventListener("click",contextmenufunc);
     });
 
-    canvas_left.addEventListener("click",(event)=>{
+    canvas_left.addEventListener("click",()=>{
         if(document.querySelector(".contextmenu")){
             document.querySelector(".contextmenu ul").removeEventListener("click",contextmenufunc);
             document.querySelector(".contextmenu").remove();
@@ -104,18 +104,13 @@
             canvas_left.addEventListener("mousemove",dragNode);
     });
 
-    try{
-        canvas_left.addEventListener("mouseleave",()=>{
-            canvas_left.removeEventListener("mousemove",dragNode);
-        });
+    canvas_left.addEventListener("mouseleave",()=>{
+        canvas_left.removeEventListener("mousemove",dragNode);
+    });
 
-        canvas_left.addEventListener("mouseup",()=>{
-            canvas_left.removeEventListener("mousemove",dragNode);
-
-         });
-    }
-    catch(err){
-    }
+    canvas_left.addEventListener("mouseup",()=>{
+        canvas_left.removeEventListener("mousemove",dragNode);
+    });
 
     function dragNode(event){
         selectedState.x = event.clientX-info.left;
@@ -191,7 +186,6 @@
             context_left.fillText(this.text,this.x,this.y);
 
             if(this.isStartState){
-                context_left.font = "1em Arial";
                 context_left.lineCap = "round";
                 context_left.beginPath();
                 context_left.moveTo(this.x-(this.radius+30),this.y);
@@ -199,14 +193,12 @@
                 context_left.lineTo(this.x-(this.radius+5)-5,this.y-3);
                 context_left.moveTo(this.x-(this.radius+5),this.y);
                 context_left.lineTo(this.x-(this.radius+5)-5,this.y+3);
-
                 context_left.stroke();
             }
 
             if(this.isAcceptState){
                 context_left.beginPath();
                 context_left.fillStyle = this.background_color;
-                context_left.strokeStyle = this.line_color;
                 context_left.arc(this.x,this.y,this.radius-5,0,Math.PI*2,false);
                 context_left.fill();
                 context_left.stroke();
@@ -233,12 +225,7 @@
             context_left.lineTo(this.to.x-5,this.to.y+3);
             context_left.stroke();
             context_left.font = "1em Arial";
-            let temp;
-            if(this.text==="é")
-                temp = '\u03B5';
-            else
-                temp = this.text; 
-            context_left.fillText(temp,(this.from.x+this.to.x)/2,(this.from.y+this.to.y)/2);
+            context_left.fillText(this.text,(this.from.x+this.to.x)/2,(this.from.y+this.to.y)/2);
         }
     }
 
@@ -251,8 +238,7 @@
         document.addEventListener("keypress",promptKeyPress);
         function promptKeyPress(event){
             if(event.keyCode >= "0".charCodeAt(0) && event.keyCode <= '9'.charCodeAt(0) || event.keyCode >= 'a'.charCodeAt(0) && event.keyCode <= 'z'.charCodeAt(0) || event.keyCode >= 'A'.charCodeAt(0) && event.keyCode <= 'Z'.charCodeAt(0)){
-                let temp = new State(a,b,event.key);
-                addState(temp);
+                addState(new State(a,b,event.key));
                 document.removeEventListener("keypress",promptKeyPress);
                 document.getElementById("prompt").remove();
             }
@@ -299,8 +285,7 @@
         `);
         canvas_left.addEventListener("click",clickOtherNode);
         function clickOtherNode(event){
-            let temp = selectedNode(event.clientX,event.clientY);
-            if(temp!=-1){
+            if(selectedState!=-1){
                 document.getElementById("prompt").remove();
                 document.body.insertAdjacentHTML("beforeend",`
                 <div id="prompt">
@@ -310,8 +295,12 @@
                 document.addEventListener("keypress",promptKeyPress);
                 function promptKeyPress(event){
                     if(event.keyCode >= "0".charCodeAt(0) && event.keyCode <= '9'.charCodeAt(0) || event.keyCode >= 'a'.charCodeAt(0) && event.keyCode <= 'z'.charCodeAt(0) || event.keyCode >= 'A'.charCodeAt(0) && event.keyCode <= 'Z'.charCodeAt(0) || event.keyCode == 'é'.charCodeAt(0)){
-                        temp = new Transition(from,temp,event.key);
-                        nfa.T.push(temp);
+                        let temp;
+                        if(event.key=="é")
+                            temp = '\u03B5';
+                        else
+                            temp = event.key;
+                        nfa.T.push(new Transition(from,selectedState,temp));
                         drawCanvas();
                         document.removeEventListener("keypress",promptKeyPress);
                         document.getElementById("prompt").remove();
@@ -358,18 +347,12 @@
         });
 
         let ea = [];
-        let éa= [];
+        let éa = [];
         automaton.T.forEach(transition=>{
-            let temp;
-            if(transition.text == 'é')
-                temp = '\u03B5'
-            else
-                temp = transition.text;
-
-            if(!ea.includes(temp)){
-                ea.push(temp);
+            if(!ea.includes(transition.text)){
+                ea.push(transition.text);
             }
-            éa.push(`𝛿(${transition.from.text},${temp})=${transition.to.text}`);
+            éa.push(`𝛿(${transition.from.text},${transition.text})=${transition.to.text}`);
         });
 
         listFormal(qa,ea,éa,q0,fa,"left");
@@ -401,71 +384,57 @@
     }
 
     function listTable(q,e,é,q0,f,lor){
-        let table_rows=[];
+        let table_rows = [];
         let table;
         if(e.includes('\u03B5')){
             e.push(e.splice(e.indexOf('\u03B5'),1));
         }
-        if(lor=="left"){
+        if(lor=="left")
             table = document.querySelector("#left-panel-down .table table tbody");
-            table.innerHTML="";
-            for(let i=-1;i<q.length;i++){
-                table_rows.push([]);
-                table.insertAdjacentHTML("beforeend",`
-                    <tr>
-                    </tr>
+        else
+            table = document.querySelector("#right-panel-down .table table tbody");
+        table.innerHTML="";
+        for(let i = -1 ; i < q.length ; i++){
+            table_rows.push([]);
+            table.insertAdjacentHTML("beforeend",`
+                <tr>
+                </tr>
+            `);
+            if(i==-1){
+                table_rows[0].push(undefined);
+                table.lastElementChild.insertAdjacentHTML("beforeend",`
+                    <th>
+                    </th>
                 `);
-                if(i==-1){
-                    table_rows[0].push(undefined);
+                for(let j of e){
+                    table_rows[0].push(j.toString());
                     table.lastElementChild.insertAdjacentHTML("beforeend",`
                         <th>
+                            ${j}
                         </th>
                     `);
-                    for(let j of e){
-                        table_rows[0].push(j.toString());
-                        table.lastElementChild.insertAdjacentHTML("beforeend",`
-                            <th>
-                                ${j}
-                            </th>
-                        `);
-                    }
                 }
-                else{
-                    table_rows[table_rows.length-1].push(q[i]);
-                    table.lastElementChild.insertAdjacentHTML("beforeend",`
-                    
-                            <th>
-                               ${q0==q[i]?"\u2192":f.includes(q[i])?"*":""}${q[i]}
-                            </th>
-                    `);
-                    for(let j of e){
-                        let temp;
-                        let temp2=[];
-                        for(let k of nfa.T){
-                            if(j=='\u03B5'){
-                                j="é";
-                            }
-                            if(q[i]==k.from.text && j==k.text){
-                                temp2.push(k.to.text);
-                                temp=true;
-                            }
-                        }
-                        if(temp){
-                            table_rows[table_rows.length-1].push(temp2);
-                            table.lastElementChild.insertAdjacentHTML("beforeend",`
-                                <td>
-                                    {${temp2.join(",")}}
-                                </td>
-                            `);
-                        }
-                        else{
-                            table_rows[table_rows.length-1].push(undefined);
-                            table.lastElementChild.insertAdjacentHTML("beforeend",`
-                                <td>
-                                </td>
-                            `);
+            }
+            else{
+                table_rows[table_rows.length-1].push(q[i]);
+                table.lastElementChild.insertAdjacentHTML("beforeend",`
+                    <th>
+                        ${q0==q[i]?"\u2192":f.includes(q[i])?"*":""}${q[i]}
+                    </th>
+                `);
+                for(let j of e){
+                    let temp = [];
+                    for(let k of nfa.T){
+                        if(q[i] == k.from.text && j == k.text){
+                            temp.push(k.to.text);
                         }
                     }
+                    table_rows[table_rows.length-1].push(temp);
+                    table.lastElementChild.insertAdjacentHTML("beforeend",`
+                        <td>
+                            ${temp.length!=0?`{${temp.join(",")}}`:""}
+                        </td>
+                    `);
                 }
             }
         }
@@ -477,31 +446,7 @@
     }
 
     function clearEpsilon(data){
-        let isIncludesEpsilon=false;
-        let step=false;
-        for(let i of data){
-            if(i.includes('\u03B5')){
-                isIncludesEpsilon=true;
-            }
-            if(!step){
-                step=true;
-                continue;
-            }
-            let epsilon = i[i.length-1];
-            if(isIncludesEpsilon && epsilon != undefined){
-                for(let j of epsilon){
-                    for(let k of data.slice(1)){
-                        if(k[0]==j){
-                            let ii=1;
-                            for(let l of k.slice(1)){
-                                if(l!=undefined){
-                                }
-                            }   
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        
+        
     }
 })();   
